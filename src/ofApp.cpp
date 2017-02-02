@@ -7,72 +7,70 @@ ofPolyline ofApp::makeStick(const vector<ofVec3f> & v,double ext,double w){
     // constants we will need:
     double sidelength = v[0].distance(v[1]);
     double r = w/sidelength;
-    double xa = (v[1].x + v[5].x)/2;
-    double ya = (v[1].y + v[5].y)/2;
-    double D = ext + sidelength/2;
-    ofPolyline returnVal;
-    
-    // make vertex 0:
-    double x = 2 * (D * v[0].x - ext * xa)/sidelength;
-    double y = 2 * (D * v[0].y - ext * ya)/sidelength;
-    returnVal.addVertex(x,y);
-    
-    // make vertex 1:
-    x = ((2*D - w)*v[0].x - 2*ext*xa + w*v[1].x)/sidelength;
-    y = ((2*D - w)*v[0].y - 2*ext*ya + w*v[1].y)/sidelength;
-    returnVal.addVertex(x,y);
-    
-    // make vertex 2:
-    x = (1-r) * v[0].x + r * v[1].x;
-    y = (1-r) * v[0].y + r * v[1].y;
-    returnVal.addVertex(x,y);
-    
-    // make vertex 3:
-    x = r * (v[1].x + v[5].x) + (1 - (2*r)) * v[0].x;
-    y = r * (v[1].y + v[5].y) + (1 - (2*r)) * v[0].y;
-    returnVal.addVertex(x,y);
-    
-    // make vertex 4:
-    x = (1-r) * v[0].x + r * v[5].x;
-    y = (1-r) * v[0].y + r * v[5].y;
-    returnVal.addVertex(x,y);
-    
-    // make vertex 5:
-    x = ((2*D - w)*v[0].x - 2*ext*xa + w*v[5].x)/sidelength;
-    y = ((2*D - w)*v[0].y - 2*ext*ya + w*v[5].y)/sidelength;
-    returnVal.addVertex(x,y);
-    
-    returnVal.close();
-    return returnVal;
-}
-
-ofPolyline ofApp::makePlate(const vector<ofVec3f> & v, double ext, double w){
-    double sidelength = v[0].distance(v[1]);
-    double r = w/sidelength;
-    double xa = (v[1].x + v[5].x)/2;
-    double ya = (v[1].y + v[5].y)/2;
+    double xa = (v[1].x + v[2].x)/2;
+    double ya = (v[1].y + v[2].y)/2;
     double D = ext + sidelength/2;
     ofPolyline returnVal;
     
     // make vertex 0:
     double x0 = 2 * (D * v[0].x - ext * xa)/sidelength;
     double y0 = 2 * (D * v[0].y - ext * ya)/sidelength;
+    
+    // make vertex 1:
+    double x1 = ((2*D - w)*v[0].x - 2*ext*xa + w*v[1].x)/sidelength;
+    double y1 = ((2*D - w)*v[0].y - 2*ext*ya + w*v[1].y)/sidelength;
+    
+    // make vertex 2:
+    double x2 = (1-r) * v[0].x + r * v[1].x;
+    double y2 = (1-r) * v[0].y + r * v[1].y;
+    
+    // make vertex 3:
+    double x3 = r * (v[1].x + v[2].x) + (1 - (2*r)) * v[0].x;
+    double y3 = r * (v[1].y + v[2].y) + (1 - (2*r)) * v[0].y;
+    //returnVal.addVertex(x3,y3);
+    
+    // make vertex 4:
+    double x4 = (1-r) * v[0].x + r * v[2].x;
+    double y4 = (1-r) * v[0].y + r * v[2].y;
+    
+    // make vertex 5:
+    double x5 = ((2*D - w)*v[0].x - 2*ext*xa + w*v[2].x)/sidelength;
+    double y5 = ((2*D - w)*v[0].y - 2*ext*ya + w*v[2].y)/sidelength;
+    
+    returnVal.addVertex(x4,y4);
+    returnVal.addVertex(x5,y5);
     returnVal.addVertex(x0,y0);
+    returnVal.addVertex(x1,y1);
+    returnVal.addVertex(x2,y2);
+
+    return returnVal;
+}
+
+ofPolyline ofApp::makePlate(const vector<ofVec3f> & v, double ext, double w){
+    double sidelength = v[0].distance(v[1]);
+    double r = w/sidelength;
+    double xa = (v[1].x + v[2].x)/2;
+    double ya = (v[1].y + v[2].y)/2;
+    double D = ext + sidelength/2;
+    ofPolyline returnVal;
+    
+    // make vertex 0:
+    double x0 = 2 * (D * v[0].x - ext * xa)/sidelength;
+    double y0 = 2 * (D * v[0].y - ext * ya)/sidelength;
     
     // make vertex 1:
     double xtemp = (1-r) * v[0].x + r * v[1].x;
     double ytemp = (1-r) * v[0].y + r * v[1].y;
     double x1 = x0 - v[0].x + xtemp;
     double y1 = y0 - v[0].y + ytemp;
-    returnVal.addVertex(x1,y1);
     
     // make vertex 3:
     double x3 = 2*w*v[0].x/ext - (2*w-ext)*x0/ext;
     double y3 = 2*w*v[0].y/ext - (2*w-ext)*y0/ext;
     
     // make vertex 5:
-    xtemp = (1-r) * v[0].x + r * v[5].x;
-    ytemp = (1-r) * v[0].y + r * v[5].y;
+    xtemp = (1-r) * v[0].x + r * v[2].x;
+    ytemp = (1-r) * v[0].y + r * v[2].y;
     double x5 = x0 - v[0].x + xtemp;
     double y5 = y0 - v[0].y + ytemp;
     
@@ -84,25 +82,33 @@ ofPolyline ofApp::makePlate(const vector<ofVec3f> & v, double ext, double w){
     double x4 = 2*x5 - 2*x0 + x1;
     double y4 = 2*y5 - 2*y0 + y1;
     
-    returnVal.addVertex(x2,y2);
-    returnVal.addVertex(x3,y3);
     returnVal.addVertex(x4,y4);
     returnVal.addVertex(x5,y5);
+    returnVal.addVertex(x0,y0);
+    returnVal.addVertex(x1,y1);
+    returnVal.addVertex(x2,y2);
+    returnVal.addVertex(x3,y3);
+
     returnVal.close();
 
     return returnVal;
 }
 ofPolyline ofApp::makeNextHex(ofPolyline h) {
     vector<ofVec3f> verts = h.getVertices();
+    vector<ofVec3f> pilot;
+    pilot.push_back(verts[2]);
+    pilot.push_back(verts[3]);
+    pilot.push_back(verts[1]);
+    
     double sidelength = verts[0].distance(verts[1]);
     double extent = ofRandom(2*sidelength);
     double width = ofRandom(2*sidelength);
     ofPolyline returnVal;
     
     if (width > sidelength)
-        returnVal = makePlate(verts, extent, width);
+        returnVal = makePlate(pilot, extent, width);
     else
-        returnVal = makeStick(verts, extent, width);
+        returnVal = makeStick(pilot, extent, width);
     
     return returnVal;
 }
