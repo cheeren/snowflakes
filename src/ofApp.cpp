@@ -1,5 +1,6 @@
 #include "ofApp.h"
 #include <cmath>
+#include <queue>
 
 //--------------------------------------------------------------
 
@@ -93,16 +94,12 @@ ofPolyline ofApp::makePlate(const vector<ofVec3f> & v, double ext, double w){
 
     return returnVal;
 }
-ofPolyline ofApp::makeNextHex(ofPolyline h) {
-    vector<ofVec3f> verts = h.getVertices();
-    vector<ofVec3f> pilot;
-    pilot.push_back(verts[2]);
-    pilot.push_back(verts[3]);
-    pilot.push_back(verts[1]);
+
+ofPolyline ofApp::makeNextHex(vector<ofVec3f> pilot) {
     
-    double sidelength = verts[2].distance(verts[3]);
-    double extent = ofRandom(2*sidelength);
-    double width = ofRandom(2*sidelength);
+    double sidelength = pilot[0].distance(pilot[1]);
+    double extent = ofRandom(sidelength/2, 2*sidelength);
+    double width = ofRandom(3*sidelength/2);
     ofPolyline returnVal;
     
     if (width > sidelength)
@@ -118,11 +115,35 @@ void ofApp::setup(){
     for (int i = 0; i < 6; i++)
         first.addVertex(cos(60 * i * pi/180.0),sin(60 * i * pi/180.0));
     first.close();
+    
+    queue<ofPolyline> Q;
+    
+    Q.push(first);
     hexagons.push_back(first);
-    for (int i = 1; i < 20; i++) {
-            // add 19 hexagons to the array
-        ofPolyline newHex = makeNextHex(hexagons[i-1]);
-        hexagons.push_back(newHex);
+
+    while (Q.size() > 0 && Q.size() < 20) {
+        ofPolyline current = Q.front(); Q.pop();
+        vector<ofVec3f> verts = current.getVertices();
+        vector<ofVec3f> pilot;
+        pilot.push_back(verts[2]);
+        pilot.push_back(verts[3]);
+        pilot.push_back(verts[1]);
+        ofPolyline newStem = makeNextHex(pilot);
+        Q.push(newStem);
+        hexagons.push_back(newStem);
+
+
+        if (verts.size() == 6) {
+
+            pilot[0] = verts[1];
+            pilot[1] = verts[2];
+            pilot[2] = verts[0];
+            ofPolyline newBranch = makeNextHex(pilot);
+            Q.push(newBranch);
+            hexagons.push_back(newBranch);
+
+        }
+            
     }
     
 /*
@@ -175,10 +196,10 @@ void ofApp::draw(){
     ofPushMatrix();
         ofTranslate(ofGetWidth()/2, ofGetHeight()/2);  // Translate to the center of the screen
         ofScale(25, 25);
-    for (int j = 0; j < 6; j++) {
+    for (int j = 0; j < 3; j++) {
         for (int i = 0; i < 20; i++)
             hexagons[i].draw();
-    ofRotate(60);
+    ofRotate(120);
     }
 
     ofPopMatrix();

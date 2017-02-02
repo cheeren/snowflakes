@@ -28,7 +28,7 @@ class ofApp : public ofBaseApp{
     ofPolyline closedShapePolyline;
     vector<ofPolyline> hexagons;
     const double pi = 3.1415926535897;
-    ofPolyline makeNextHex(ofPolyline h);
+    ofPolyline makeNextHex(vector<ofVec3f> pilot);
     ofPolyline makeStick(const vector<ofVec3f> & v, double ex, double w);
     ofPolyline makePlate(const vector<ofVec3f> & v, double ex, double w);
 
