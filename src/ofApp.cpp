@@ -100,7 +100,7 @@ ofPolyline ofApp::makeNextHex(ofPolyline h) {
     pilot.push_back(verts[3]);
     pilot.push_back(verts[1]);
     
-    double sidelength = verts[0].distance(verts[1]);
+    double sidelength = verts[2].distance(verts[3]);
     double extent = ofRandom(2*sidelength);
     double width = ofRandom(2*sidelength);
     ofPolyline returnVal;
