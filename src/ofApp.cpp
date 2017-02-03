@@ -4,6 +4,39 @@
 
 //--------------------------------------------------------------
 
+vector<ofPolyline> ofApp::buildReflection(vector<ofPolyline> s,vector<ofVec3f> p){
+    
+    /*
+    Given (x,y) and a line y = ax + c we want the point (x', y') reflected on the line.
+    
+    Set d:= (x + (y - c)*a)/(1 + a^2)
+    
+    Then x' = 2*d - x
+    
+    and y' = 2*d*a - y + 2c */
+    
+    vector<ofPolyline> retPolyList;
+    
+    for (int i = 0; i < s.size(); i++){
+        vector<ofVec3f> verts = s[i].getVertices();
+        ofPolyline addPoly;
+        for (int j = 0; j < verts.size(); j++){
+            //transform each vertex
+            double a = -(p[2].x - p[1].x)/(p[2].y - p[1].y);
+            double c = -a * p[0].x + p[0].y;
+            double d = (verts[j].x + (verts[j].y - c)*a)/(1 + a*a);
+            double newX = 2*d - verts[j].x;
+            double newY = 2*d*a - verts[j].y + 2*c;
+            addPoly.addVertex(newX,newY);
+        }
+        if (addPoly.size() == 6) addPoly.close();
+        retPolyList.push_back(addPoly);
+        
+    }
+    return retPolyList;
+}
+
+
 ofPolyline ofApp::makeStick(const vector<ofVec3f> & v,double ext,double w){
     // constants we will need:
     double sidelength = v[0].distance(v[1]);
@@ -95,7 +128,7 @@ ofPolyline ofApp::makePlate(const vector<ofVec3f> & v, double ext, double w){
     return returnVal;
 }
 
-ofPolyline ofApp::makeNextHex(vector<ofVec3f> pilot) {
+ofPolyline ofApp::makeHex(vector<ofVec3f> pilot) {
     
     double sidelength = pilot[0].distance(pilot[1]);
     double extent = ofRandom(sidelength/2, 2*sidelength);
@@ -110,57 +143,43 @@ ofPolyline ofApp::makeNextHex(vector<ofVec3f> pilot) {
     return returnVal;
 }
 
+vector<ofPolyline> ofApp::makeFlake(ofPolyline current, int depth){
+    vector<ofPolyline> retFlake;
+    
+    if (depth == 1){
+        retFlake.push_back(current);
+    }
+    else {
+        vector<ofVec3f> verts = current.getVertices();
+        vector<ofVec3f> pilot1, pilot2;
+        pilot1.push_back(verts[2]);
+        pilot1.push_back(verts[3]);
+        pilot1.push_back(verts[1]);
+        ofPolyline newFlake = makeHex(pilot1);
+        retFlake = makeFlake(newFlake,depth-1);
+        if (verts.size() == 6) {
+            pilot2.push_back(verts[1]);
+            pilot2.push_back(verts[2]);
+            pilot2.push_back(verts[0]);
+            ofPolyline newBranchSeed = makeHex(pilot2);
+            vector<ofPolyline> newBranch = makeFlake(newBranchSeed,depth-1);
+            retFlake.insert(retFlake.end(), newBranch.begin(), newBranch.end());
+            
+            vector<ofPolyline> reflectBranch = buildReflection(newBranch, pilot1);
+            retFlake.insert(retFlake.end(), reflectBranch.begin(), reflectBranch.end());
+        }
+        retFlake.push_back(current);
+    }
+    return retFlake;
+}
+
 void ofApp::setup(){
     ofPolyline first;
     for (int i = 0; i < 6; i++)
         first.addVertex(cos(60 * i * pi/180.0),sin(60 * i * pi/180.0));
     first.close();
+    hexagons = makeFlake(first, 10);
     
-    queue<ofPolyline> Q;
-    
-    Q.push(first);
-    hexagons.push_back(first);
-
-    while (Q.size() > 0 && Q.size() < 20) {
-        ofPolyline current = Q.front(); Q.pop();
-        vector<ofVec3f> verts = current.getVertices();
-        vector<ofVec3f> pilot;
-        pilot.push_back(verts[2]);
-        pilot.push_back(verts[3]);
-        pilot.push_back(verts[1]);
-        ofPolyline newStem = makeNextHex(pilot);
-        Q.push(newStem);
-        hexagons.push_back(newStem);
-
-
-        if (verts.size() == 6) {
-
-            pilot[0] = verts[1];
-            pilot[1] = verts[2];
-            pilot[2] = verts[0];
-            ofPolyline newBranch = makeNextHex(pilot);
-            Q.push(newBranch);
-            hexagons.push_back(newBranch);
-
-        }
-            
-    }
-    
-/*
-    
-    curvedSegmentPolyline.curveTo(350, 100);  // These curves are Catmull-Rom splines
-    curvedSegmentPolyline.curveTo(350, 100);  // Necessary Duplicate for Control Point
-    curvedSegmentPolyline.curveTo(400, 150);
-    curvedSegmentPolyline.curveTo(450, 100);
-    curvedSegmentPolyline.curveTo(500, 150);
-    curvedSegmentPolyline.curveTo(550, 100);
-    curvedSegmentPolyline.curveTo(550, 100);  // Necessary Duplicate for Control Point
-    
-    closedShapePolyline.addVertex(600, 125);
-    closedShapePolyline.addVertex(700, 100);
-    closedShapePolyline.addVertex(800, 125);
-    closedShapePolyline.addVertex(700, 150);
-    closedShapePolyline.close();*/
 }
 
 //--------------------------------------------------------------
@@ -173,35 +192,15 @@ void ofApp::draw(){
     ofBackground(0);
     ofSetLineWidth(2.0);  // Line widths apply to polylines
     ofSetColor(255,100,0);
-    /*
-    straightSegmentPolyline.draw();// This is how we draw polylines
-    vector<ofVec3f> vertices1 = straightSegmentPolyline.getVertices();
-    for (int vertexIndex=0; vertexIndex<vertices1.size(); vertexIndex++) {
-        ofVec3f vertex = vertices1[vertexIndex];  // ofVec3f is like ofVec2f, but with a third dimension, z
-        ofDrawCircle(vertex, 5);
-    }
-    curvedSegmentPolyline.draw();  // Nice and easy, right?
-    vector<ofVec3f> vertices2 = curvedSegmentPolyline.getVertices();
-    for (int vertexIndex=0; vertexIndex<vertices2.size(); vertexIndex++) {
-        ofVec3f vertex = vertices2[vertexIndex];  // ofVec3f is like ofVec2f, but with a third dimension, z
-        ofDrawCircle(vertex, 5);
-    }
-    closedShapePolyline.draw();
-    vector<ofVec3f> vertices3 = closedShapePolyline.getVertices();
-    for (int vertexIndex=0; vertexIndex<vertices3.size(); vertexIndex++) {
-        ofVec3f vertex = vertices3[vertexIndex];  // ofVec3f is like ofVec2f, but with a third dimension, z
-        ofDrawCircle(vertex, 5);
-    } */
     
     ofPushMatrix();
-        ofTranslate(ofGetWidth()/2, ofGetHeight()/2);  // Translate to the center of the screen
-        ofScale(25, 25);
-    for (int j = 0; j < 3; j++) {
-        for (int i = 0; i < 20; i++)
+    ofTranslate(ofGetWidth()/2, ofGetHeight()/2);  // Translate to the center of the screen
+    ofScale(25, 25);
+    for (int j = 0; j < 6; j++) {
+        for (int i = 0; i < hexagons.size(); i++)
             hexagons[i].draw();
-    ofRotate(120);
+        ofRotate(60);
     }
-
     ofPopMatrix();
 }
 
