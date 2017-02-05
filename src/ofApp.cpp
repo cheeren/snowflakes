@@ -1,10 +1,11 @@
 #include "ofApp.h"
+#include "ofHex.h"
 #include <cmath>
 #include <queue>
 
 //--------------------------------------------------------------
 
-vector<ofPolyline> ofApp::buildReflection(vector<ofPolyline> s,vector<ofVec3f> p){
+vector<ofHex> ofApp::buildReflection(vector<ofHex> s,vector<ofVec3f> p){
     
     /*
     Given (x,y) and a line y = ax + c we want the point (x', y') reflected on the line.
@@ -15,11 +16,11 @@ vector<ofPolyline> ofApp::buildReflection(vector<ofPolyline> s,vector<ofVec3f> p
     
     and y' = 2*d*a - y + 2c */
     
-    vector<ofPolyline> retPolyList;
+    vector<ofHex> retPolyList;
     
     for (int i = 0; i < s.size(); i++){
         vector<ofVec3f> verts = s[i].getVertices();
-        ofPolyline addPoly;
+        ofHex addPoly;
         for (int j = 0; j < verts.size(); j++){
             //transform each vertex
             double a = -(p[2].x - p[1].x)/(p[2].y - p[1].y);
@@ -29,7 +30,7 @@ vector<ofPolyline> ofApp::buildReflection(vector<ofPolyline> s,vector<ofVec3f> p
             double newY = 2*d*a - verts[j].y + 2*c;
             addPoly.addVertex(newX,newY);
         }
-        if (addPoly.size() == 6) addPoly.close();
+        if (addPoly.plate) addPoly.close();
         retPolyList.push_back(addPoly);
         
     }
@@ -37,14 +38,14 @@ vector<ofPolyline> ofApp::buildReflection(vector<ofPolyline> s,vector<ofVec3f> p
 }
 
 
-ofPolyline ofApp::makeStick(const vector<ofVec3f> & v,double ext,double w){
+ofHex ofApp::makeStick(const vector<ofVec3f> & v,double ext,double w){
     // constants we will need:
     double sidelength = v[0].distance(v[1]);
     double r = w/sidelength;
     double xa = (v[1].x + v[2].x)/2;
     double ya = (v[1].y + v[2].y)/2;
     double D = ext + sidelength/2;
-    ofPolyline returnVal;
+    ofHex returnVal;
     
     // make vertex 0:
     double x0 = 2 * (D * v[0].x - ext * xa)/sidelength;
@@ -76,17 +77,21 @@ ofPolyline ofApp::makeStick(const vector<ofVec3f> & v,double ext,double w){
     returnVal.addVertex(x0,y0);
     returnVal.addVertex(x1,y1);
     returnVal.addVertex(x2,y2);
+    returnVal.addVertex(x3,y3);
+    returnVal.plate = false;
+
+    returnVal.close();
 
     return returnVal;
 }
 
-ofPolyline ofApp::makePlate(const vector<ofVec3f> & v, double ext, double w){
+ofHex ofApp::makePlate(const vector<ofVec3f> & v, double ext, double w){
     double sidelength = v[0].distance(v[1]);
     double r = w/sidelength;
     double xa = (v[1].x + v[2].x)/2;
     double ya = (v[1].y + v[2].y)/2;
     double D = ext + sidelength/2;
-    ofPolyline returnVal;
+    ofHex returnVal;
     
     // make vertex 0:
     double x0 = 2 * (D * v[0].x - ext * xa)/sidelength;
@@ -122,18 +127,19 @@ ofPolyline ofApp::makePlate(const vector<ofVec3f> & v, double ext, double w){
     returnVal.addVertex(x1,y1);
     returnVal.addVertex(x2,y2);
     returnVal.addVertex(x3,y3);
+    returnVal.plate = true;
 
     returnVal.close();
 
     return returnVal;
 }
 
-ofPolyline ofApp::makeHex(vector<ofVec3f> pilot) {
+ofHex ofApp::makeHex(vector<ofVec3f> pilot) {
     
     double sidelength = pilot[0].distance(pilot[1]);
     double extent = ofRandom(sidelength/2, 2*sidelength);
     double width = ofRandom(3*sidelength/2);
-    ofPolyline returnVal;
+    ofHex returnVal;
     
     if (width > sidelength)
         returnVal = makePlate(pilot, extent, width);
@@ -143,8 +149,8 @@ ofPolyline ofApp::makeHex(vector<ofVec3f> pilot) {
     return returnVal;
 }
 
-vector<ofPolyline> ofApp::makeFlake(ofPolyline current, int depth){
-    vector<ofPolyline> retFlake;
+vector<ofHex> ofApp::makeFlake(ofHex current, int depth){
+    vector<ofHex> retFlake;
     
     if (depth == 1){
         retFlake.push_back(current);
@@ -155,17 +161,17 @@ vector<ofPolyline> ofApp::makeFlake(ofPolyline current, int depth){
         pilot1.push_back(verts[2]);
         pilot1.push_back(verts[3]);
         pilot1.push_back(verts[1]);
-        ofPolyline newFlake = makeHex(pilot1);
+        ofHex newFlake = makeHex(pilot1);
         retFlake = makeFlake(newFlake,depth-1);
-        if (verts.size() == 6) {
+        if (current.plate) {
             pilot2.push_back(verts[1]);
             pilot2.push_back(verts[2]);
             pilot2.push_back(verts[0]);
-            ofPolyline newBranchSeed = makeHex(pilot2);
-            vector<ofPolyline> newBranch = makeFlake(newBranchSeed,depth-1);
+            ofHex newBranchSeed = makeHex(pilot2);
+            vector<ofHex> newBranch = makeFlake(newBranchSeed,depth-1);
             retFlake.insert(retFlake.end(), newBranch.begin(), newBranch.end());
             
-            vector<ofPolyline> reflectBranch = buildReflection(newBranch, pilot1);
+            vector<ofHex> reflectBranch = buildReflection(newBranch, pilot1);
             retFlake.insert(retFlake.end(), reflectBranch.begin(), reflectBranch.end());
         }
         retFlake.push_back(current);
@@ -174,11 +180,35 @@ vector<ofPolyline> ofApp::makeFlake(ofPolyline current, int depth){
 }
 
 void ofApp::setup(){
-    ofPolyline first;
+    ofHex first;
     for (int i = 0; i < 6; i++)
         first.addVertex(cos(60 * i * pi/180.0),sin(60 * i * pi/180.0));
     first.close();
+    
     hexagons = makeFlake(first, 10);
+    
+    for(int i = 0; i < hexagons.size(); i++) {
+        
+        //FOR FILLING
+        
+        ofPath pathFromHex;//path to be built
+        
+        for(int j = 0; j < 6; j++) {
+            if(j == 0) {
+                pathFromHex.moveTo(hexagons[i].getVertices()[j]);
+            } else {
+                pathFromHex.lineTo(hexagons[i].getVertices()[j]);
+            }
+        }
+        pathFromHex.close();
+    
+        ofColor pathColor(0,0,200,ofRandom(0,127));
+        pathFromHex.setFillColor(pathColor);
+        paths.push_back(pathFromHex);
+
+        
+        
+    }
     
 }
 
@@ -189,19 +219,26 @@ void ofApp::update(){
 
 //--------------------------------------------------------------
 void ofApp::draw(){
-    ofBackground(0);
-    ofSetLineWidth(2.0);  // Line widths apply to polylines
-    ofSetColor(255,100,0);
+    ofBackground(255);
+    //ofSetLineWidth(2.0);  // Line widths apply to polylines
+    //ofSetColor(255,100,0);
     
     ofPushMatrix();
     ofTranslate(ofGetWidth()/2, ofGetHeight()/2);  // Translate to the center of the screen
     ofScale(25, 25);
     for (int j = 0; j < 6; j++) {
-        for (int i = 0; i < hexagons.size(); i++)
-            hexagons[i].draw();
+        for (int i = 0; i < hexagons.size(); i++){
+            paths[i].draw();
+        }
         ofRotate(60);
     }
     ofPopMatrix();
+    
+ //   ofColor pathColor(ofRandom(255),ofRandom(255),ofRandom(255));
+ //   pathFromContour.setFillColor(pathColor);
+ //   pathFromContour.draw();
+ //   paths.push_back(pathFromContour);
+
 }
 
 //--------------------------------------------------------------

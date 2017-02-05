@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ofMain.h"
+#include "ofHex.h"
 #include <vector>
 using namespace std;
 
@@ -23,15 +24,14 @@ class ofApp : public ofBaseApp{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
     
-    ofPolyline straightSegmentPolyline;
-    ofPolyline curvedSegmentPolyline;
-    ofPolyline closedShapePolyline;
-    vector<ofPolyline> hexagons;
+    vector<ofHex> hexagons;
+    vector<ofPath> paths;
+
     const double pi = 3.1415926535897;
-    vector<ofPolyline> makeFlake(ofPolyline current, int depth);
-    ofPolyline makeHex(vector<ofVec3f> pilot);
-    ofPolyline makeStick(const vector<ofVec3f> & v, double ex, double w);
-    ofPolyline makePlate(const vector<ofVec3f> & v, double ex, double w);
-    vector<ofPolyline> buildReflection(vector<ofPolyline> s, vector<ofVec3f> p);
+    vector<ofHex> makeFlake(ofHex current, int depth);
+    ofHex makeHex(vector<ofVec3f> pilot);
+    ofHex makeStick(const vector<ofVec3f> & v, double ex, double w);
+    ofHex makePlate(const vector<ofVec3f> & v, double ex, double w);
+    vector<ofHex> buildReflection(vector<ofHex> s, vector<ofVec3f> p);
 
 };
