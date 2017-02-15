@@ -21,6 +21,7 @@ vector<ofHex> ofApp::buildReflection(vector<ofHex> s,vector<ofVec3f> p){
     for (int i = 0; i < s.size(); i++){
         vector<ofVec3f> verts = s[i].getVertices();
         ofHex addPoly;
+        addPoly.color = s[i].color;
         for (int j = 0; j < verts.size(); j++){
             //transform each vertex
             double a = -(p[2].x - p[1].x)/(p[2].y - p[1].y);
@@ -46,6 +47,9 @@ ofHex ofApp::makeStick(const vector<ofVec3f> & v,double ext,double w){
     double ya = (v[1].y + v[2].y)/2;
     double D = ext + sidelength/2;
     ofHex returnVal;
+    returnVal.plate = false;
+    ofColor pathColor(200,0,150,ofRandom(0,127));
+    returnVal.color = pathColor;
     
     // make vertex 0:
     double x0 = 2 * (D * v[0].x - ext * xa)/sidelength;
@@ -78,7 +82,6 @@ ofHex ofApp::makeStick(const vector<ofVec3f> & v,double ext,double w){
     returnVal.addVertex(x1,y1);
     returnVal.addVertex(x2,y2);
     returnVal.addVertex(x3,y3);
-    returnVal.plate = false;
 
     returnVal.close();
 
@@ -92,6 +95,9 @@ ofHex ofApp::makePlate(const vector<ofVec3f> & v, double ext, double w){
     double ya = (v[1].y + v[2].y)/2;
     double D = ext + sidelength/2;
     ofHex returnVal;
+    returnVal.plate = true;
+    ofColor pathColor(200,0,150,ofRandom(0,127));
+    returnVal.color = pathColor;
     
     // make vertex 0:
     double x0 = 2 * (D * v[0].x - ext * xa)/sidelength;
@@ -127,7 +133,6 @@ ofHex ofApp::makePlate(const vector<ofVec3f> & v, double ext, double w){
     returnVal.addVertex(x1,y1);
     returnVal.addVertex(x2,y2);
     returnVal.addVertex(x3,y3);
-    returnVal.plate = true;
 
     returnVal.close();
 
@@ -181,10 +186,14 @@ vector<ofHex> ofApp::makeFlake(ofHex current, int depth){
 
 void ofApp::setup(){
     ofHex first;
+    ofColor pathColor(200,0,150,ofRandom(0,127));
+    first.color = pathColor;
+    first.plate = true;
     for (int i = 0; i < 6; i++)
         first.addVertex(cos(60 * i * pi/180.0),sin(60 * i * pi/180.0));
     first.close();
-    
+
+
     hexagons = makeFlake(first, 10);
     
     for(int i = 0; i < hexagons.size(); i++) {
@@ -202,8 +211,7 @@ void ofApp::setup(){
         }
         pathFromHex.close();
     
-        ofColor pathColor(0,0,200,ofRandom(0,127));
-        pathFromHex.setFillColor(pathColor);
+        pathFromHex.setFillColor(hexagons[i].color);
         paths.push_back(pathFromHex);
 
         

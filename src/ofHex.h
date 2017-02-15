@@ -17,6 +17,7 @@ using namespace std;
 class ofHex: public ofPolyline {
 public:
     bool plate;
+    ofColor color;
 };
 
 
