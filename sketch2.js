@@ -46,7 +46,7 @@ function draw() {
 class flake {
     constructor(){
         this.translatex = random();
-        this.translatey = random()/2;
+        this.translatey = random()/8;
         this.rotspeed = 2*random() - 1;
         this.growthrate = random();
         this.scale = random(2,6);
@@ -55,7 +55,7 @@ class flake {
             pts.push({x: this.scale*cos(60*i), y: this.scale*sin(60*i)});
         }
         let h = new sixgon(pts,false,0);
-        this.hexes = this.makeFlake(h,10);
+        this.hexes = this.makeFlake(h,8);
     }
 
     display(timer){

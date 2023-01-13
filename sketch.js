@@ -25,7 +25,8 @@ function draw() {
   clear();
   background(25, 25, 112); // white
 
-  f.display(timer);   
+  f.display(timer);
+
 }
 
 class flake {
@@ -34,13 +35,13 @@ class flake {
         this.translatey = 0.5;
         this.rotspeed = 2*random() - 1;
         this.growthrate = random();
-        this.scale = 10;
+        this.scale = 15;
         let pts = [];
         for (let i = 0; i < 6; i++){
             pts.push({x: this.scale*cos(60*i), y: this.scale*sin(60*i)});
         }
         let h = new sixgon(pts,false,0);
-        this.hexes = this.makeFlake(h,20);
+        this.hexes = this.makeFlake(h,10);
     }
 
     display(timer){
@@ -52,6 +53,7 @@ class flake {
                 rotate(60);
             }
         }  
+ 
     }
 
     buildReflection(s, p){
