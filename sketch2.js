@@ -5,15 +5,18 @@
 let saveButton;
 var flakes = [];
 let timer = 0;
+//let bg;
 
 function setup() {
-  createCanvas(1200, 600);
+  createCanvas(800, 800);
+  //bg = loadImage('banff.jpg');
   angleMode(DEGREES);
-  background(255, 255, 255); // white
+  background(25, 25, 112); // midnight blue
+  //background(255, 255, 255); // white
   saveButton = createButton('save');
   saveButton.mousePressed(saveSnowflake);
   
-  for (let i = 0; i < 28; i++){
+  for (let i = 0; i < 50; i++){
       flakes.push(new flake());
   } 
 }
@@ -25,8 +28,11 @@ function saveSnowflake() {
 function draw() {
   timer++;
   clear();
+  background(25, 25, 112); // midnight blue
+  //background(255, 255, 255); // white
+    //background(bg);
 
-  if (random() < 0.15){
+  if (random() < 0.30){
     flakes.push(new flake()); // append snowflake object
   }
 
@@ -53,6 +59,7 @@ class flake {
     }
 
     display(timer){
+        //this.translatey += 0.0005 + abs(this.rotspeed)/100;
         this.translatey += 0.0005 + abs(this.rotspeed)/100;
         // delete snowflake if past end of screen
         if (this.translatey > 1) {
@@ -60,6 +67,7 @@ class flake {
           flakes.splice(index, 1);
         }
         translate(width * this.translatex, height * this.translatey);
+        //rotate(timer*this.rotspeed);
         rotate(timer*this.rotspeed);
         for (let i = 0; i < min(this.hexes.length,timer/4); i++) {
             for (let j = 0; j < 6; j++){
@@ -230,7 +238,8 @@ class flake {
 
 class sixgon {
   constructor(verts, plate, level) {
-    this.col = color(50,0, 250, random(127)); 
+    this.col = color(255,255, 255, random(127)); //white
+    //this.col = color(59,190, 204, random(127)); //aqua
     this.vertices = verts;
     this.plate = plate;
     this.level = level;

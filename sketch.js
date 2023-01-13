@@ -9,7 +9,7 @@ let f;
 function setup() {
   createCanvas(600, 600);
   angleMode(DEGREES);
-  background(255, 255, 255); // white
+  background(25, 25, 112); // blue
   saveButton = createButton('save');
   saveButton.mousePressed(saveSnowflake);
   
@@ -23,6 +23,8 @@ function saveSnowflake() {
 function draw() {
   timer++;
   clear();
+  background(25, 25, 112); // white
+
   f.display(timer);   
 }
 
@@ -32,13 +34,13 @@ class flake {
         this.translatey = 0.5;
         this.rotspeed = 2*random() - 1;
         this.growthrate = random();
-        this.scale = 20;
+        this.scale = 10;
         let pts = [];
         for (let i = 0; i < 6; i++){
             pts.push({x: this.scale*cos(60*i), y: this.scale*sin(60*i)});
         }
         let h = new sixgon(pts,false,0);
-        this.hexes = this.makeFlake(h,10);
+        this.hexes = this.makeFlake(h,20);
     }
 
     display(timer){
@@ -213,7 +215,7 @@ class flake {
 
 class sixgon {
   constructor(verts, plate, level) {
-    this.col = color(50,0, 250, random(127)); 
+    this.col = color(255,255, 255, random(127)); 
     this.vertices = verts;
     this.plate = plate;
     this.level = level;
